@@ -5,4 +5,4 @@ Restful API backend for TOP final project
 https://github.com/antwonthedamaja/Odin-Book
 
 # Technologies used:
-Node, Express, typescript, jsdoc, and Mongoose/MongoDB
+Node, Express, typescript, and Mongoose/MongoDB

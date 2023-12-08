@@ -42,6 +42,10 @@ export const update_profile = asyncHandler(async (req: Request, res: Response, n
     
 })
 
+export const facebook_login = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    
+})
+
 // GET
 export const get_feed = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const { friends }: any = await User.find({}, "friends").exec();

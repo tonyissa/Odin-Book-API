@@ -12,10 +12,12 @@ router.post('/create-account', apiCont.create_account);
 
 router.post('/update-profile', apiCont.update_profile);
 
+router.post('/facebook-login', apiCont.facebook_login);
+
 // GET
 router.get('/feed', apiCont.get_feed);
 
-router.get('/post/:postId', apiCont.get_post);
+router.get('/user/:userId', apiCont.get_user);
 
 router.get('/conversations', apiCont.get_conversations);
 

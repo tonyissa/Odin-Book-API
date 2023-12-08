@@ -4,6 +4,10 @@ import app from '../app.js';
 import serverDebug from 'debug';
 import http from 'http';
 
+if (!process.env.MONGODB_URI || !process.env.PORT || !process.env.SESSION_SEKRET) {
+  throw new Error('Environmental variables not initialized')
+}
+
 /**
  * Module dependencies.
  */

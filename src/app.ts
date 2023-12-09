@@ -10,6 +10,7 @@ import mongoose from 'mongoose';
 import passport from 'passport';
 import session from 'express-session';
 import { Strategy as LocalStrategy } from "passport-local";
+import { Strategy as FacebookStrategy } from 'passport-facebook';
 import UserModel, { User } from './models/User.js';
 import bcrypt from 'bcryptjs';
 
@@ -45,6 +46,41 @@ passport.use(
     };
   })
 );
+
+passport.use(new FacebookStrategy({
+    clientID: process.env.FACEBOOK_APP_ID!,
+    clientSecret: process.env.FACEBOOK_APP_SECRET!,
+    callbackURL: "http://localhost:3000/auth/facebook/callback",
+  },
+  async function(accessToken, refreshToken, profile, cb) {
+    try {
+      const user: any = UserModel.findOne({ $or: [{ facebookId: profile.id }, { email: profile.emails![0] }, { username: profile.displayName }] }).exec();
+      if (!user) {
+        const newUser = new UserModel({
+          username: profile.displayName,
+          email: profile.emails![0],
+          password: '',
+          bio: '',
+          friends: [],
+          requests: [],
+          facebookId: profile.id
+        })
+        await newUser.save();
+        return cb(null, newUser);
+      } else if (!user.facebookId) {
+        const response = await UserModel.findByIdAndUpdate(user._id, {
+          facebookId: profile.id
+        }).exec();
+        return cb(null, response);
+      }
+
+      return cb(null, user);
+      
+    } catch (err) {
+      console.log(err);
+    }
+  }
+));
 
 passport.serializeUser((user: any, done) => {
   done(null, user.id);

@@ -6,6 +6,7 @@ import Post from '../models/Post.js';
 import Reply from '../models/Reply.js';
 import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
+import passport, { PassportStatic } from 'passport';
 
 // ACCOUNT OPERATIONS
 export const login = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -33,7 +34,7 @@ export const create_account = [
             })
             await newUser.save();
         } catch (err) {
-            console.log(err);
+            return next(err);
         }
     })
 })]
@@ -42,9 +43,19 @@ export const update_profile = asyncHandler(async (req: Request, res: Response, n
     
 })
 
-export const facebook_login = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    
-})
+export const facebook_login = function(req: Request, res: Response, next: NextFunction) {
+    passport.authenticate('facebook', function(err: any, user: any, info: any, status: any) {
+        if (err) { return next(err) }
+        req.logIn(user, function(err) {
+            res.sendStatus(400);
+            return next(err);
+        })
+        if (!user.password) {
+            res.sendStatus(418);
+        }
+        res.sendStatus(200);
+      })(req, res, next);
+}
 
 // GET
 export const get_feed = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {

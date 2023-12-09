@@ -6,7 +6,8 @@ const userSchema = new Schema({
     password: { type: String },
     bio: { type: String },
     friends: [{ type: Schema.Types.ObjectId, ref: 'User' }],
-    requests: [{ type: Schema.Types.ObjectId, ref: 'User' }]
+    requests: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+    facebookId: { type: String, unique: true }
 })
 
 export interface User {
@@ -14,8 +15,9 @@ export interface User {
     email: string,
     password: string,
     bio: string,
-    friends: Types.ObjectId,
-    requests: Types.ObjectId
+    friends: [Types.ObjectId],
+    requests: [Types.ObjectId],
+    facebookId?: string
 }
 
 export default model('User', userSchema);

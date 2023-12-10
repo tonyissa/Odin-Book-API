@@ -73,9 +73,7 @@ passport.use(new FacebookStrategy({
         }).exec();
         return cb(null, response);
       }
-
       return cb(null, user);
-      
     } catch (err) {
       console.log(err);
     }

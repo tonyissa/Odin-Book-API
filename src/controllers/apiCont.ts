@@ -38,22 +38,22 @@ export const create_account = [
         if (!errors.isEmpty()) {
             res.json({ errors: errors.array() });
         } else {
-            bcrypt.hash(req.body.password, 10, async (err, hashed) => {
+            bcrypt.hash(req.body.password, 10, (err, hashed) => {
                 if (err) return next(err);
-                try {
-                    const newUser = new User({
-                        username: req.body.username,
-                        email: req.body.email,
-                        password: hashed,
-                        bio: '',
-                        friends: [],
-                        requests: [],
-                        facebookId: ''
-                    })
-                    await newUser.save();
-                } catch (err) {
-                    return next(err);
-                }
+                const newUser = new User({
+                    username: req.body.username,
+                    email: req.body.email,
+                    password: hashed,
+                    bio: '',
+                    friends: [],
+                    requests: [],
+                    facebookId: ''
+                })
+                newUser.save()
+                .then(() => {
+                    req.login(newUser, (err) => next(err))
+                })
+                .catch(err => next(err))
             })
         }
     }
@@ -66,7 +66,7 @@ export const update_profile = asyncHandler(async (req: Request, res: Response, n
 export const facebook_login = function(req: Request, res: Response, next: NextFunction) {
     passport.authenticate('facebook', function(err: any, user: any, info: any, status: any) {
         if (err) return next(err)
-        if (!user.password) { // CHECK IF THIS WORKS, MIGHT HAVE TO ADJUST SERIALIZE USER IN APP.TS
+        if (!user.password) { // CHECK IF THIS WORKS, MIGHT HAVE TO ADJUST SERIALIZEUSER IN APP.TS
             return res.sendStatus(418);
         }
         req.login(user, (err) => {

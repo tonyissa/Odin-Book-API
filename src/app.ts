@@ -94,7 +94,7 @@ passport.deserializeUser(async (id, done) => {
 });
 
 app.use(session({ secret: process.env.SESSION_SEKRET!, resave: false, saveUninitialized: true }));
-app.use(passport.initialize());
+// app.use(passport.initialize()); // docs say this is depreciated
 app.use(passport.session());
 
 app.use(logger(process.env.NODE_ENV === 'prod' ? 'common' : 'dev'));

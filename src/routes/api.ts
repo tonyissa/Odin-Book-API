@@ -14,6 +14,8 @@ router.post('/update-profile', apiCont.update_profile);
 
 router.post('/facebook-login', apiCont.facebook_login);
 
+router.post('change-password', apiCont.change_password);
+
 // GET
 router.get('/feed', apiCont.get_feed);
 

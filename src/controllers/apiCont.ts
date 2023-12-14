@@ -69,6 +69,17 @@ export const update_profile = [
     body('username').trim().isLength(({ min: 0, max: 15 })).withMessage('Username must be between 0-15 characters')
     .isAlphanumeric().withMessage('Username must not contain non-alphanumeric characters'),
     body('about').trim().isLength(({ max: 150 })).withMessage('About me section has a max length of 150 characters'),
+    asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            res.json({ errors: errors.array() });
+        } else { // @ts-ignore
+            await User.findByIdAndUpdate(req.user._id, {
+            username: req.body.username,
+            about: req.body.about
+        })
+        res.sendStatus(200);
+    }})
 ]
 
 export const change_password = [
@@ -92,7 +103,7 @@ export const change_password = [
             res.json({ errors: errors.array() });
         } else {
             bcrypt.hash(req.body.password, 10, (err, hashed) => {
-                if (err) return next(err); //@ts-ignore
+                if (err) return next(err); // @ts-ignore
                 User.findByIdAndUpdate(req.user._id, {
                     password: hashed
                 }).exec()

@@ -111,22 +111,6 @@ export const change_password = [
     })
 ]
 
-export const facebook_login = function(req: Request, res: Response, next: NextFunction) {
-    passport.authenticate('facebook', function(err: any, user: any, info: any, status: any) {
-        if (err) return next(err)
-        if (!user.password) { // CHECK IF THIS WORKS, MIGHT HAVE TO ADJUST SERIALIZEUSER IN APP.TS
-            return res.sendStatus(418);
-        }
-        req.login(user, (err) => {
-            if (err) {
-                next(err)
-                return res.sendStatus(400);
-            }
-        })
-        res.sendStatus(200);
-      })(req, res, next);
-}
-
 // GET
 export const get_feed = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const { friends }: any = await User.findOne({}, "friends").exec();

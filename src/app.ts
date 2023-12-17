@@ -10,7 +10,6 @@ import mongoose from 'mongoose';
 import passport from 'passport';
 import session from 'express-session';
 import { Strategy as LocalStrategy } from "passport-local";
-import { Strategy as FacebookStrategy } from 'passport-facebook';
 import User from './models/User.js';
 import bcrypt from 'bcryptjs';
 

@@ -11,7 +11,7 @@ import passport from 'passport';
 import session from 'express-session';
 import { Strategy as LocalStrategy } from "passport-local";
 import { Strategy as FacebookStrategy } from 'passport-facebook';
-import UserModel, { User } from './models/User.js';
+import User from './models/User.js';
 import bcrypt from 'bcryptjs';
 
 // mongoose setup
@@ -30,9 +30,9 @@ main().catch(err => console.log(err)).then(() => console.log('MongoDB Connected'
 const app = express()
 
 passport.use(
-  new LocalStrategy(async (username, password, done) => {
+  new LocalStrategy({ usernameField: 'login' }, async (username, password, done) => {
     try {
-      const user: User | undefined | null = await UserModel.findOne({ $or: [{ email: username }, { username }] });
+      const user: any = await User.findOne({ $or: [{ email: username }, { username }] }).exec();
       if (!user) {
         return done(null, false, { message: "Username/email not found" });
       }
@@ -47,46 +47,13 @@ passport.use(
   })
 );
 
-passport.use(new FacebookStrategy({
-    clientID: process.env.FACEBOOK_APP_ID!,
-    clientSecret: process.env.FACEBOOK_APP_SECRET!,
-    callbackURL: "http://localhost:3000/auth/facebook/callback",
-  },
-  async function(accessToken, refreshToken, profile, cb) {
-    try {
-      const user: any = UserModel.findOne({ $or: [{ facebookId: profile.id }, { email: profile.emails![0] }, { username: profile.displayName }] }).exec();
-      if (!user) {
-        const newUser = new UserModel({
-          username: profile.displayName,
-          email: profile.emails![0],
-          password: '',
-          bio: '',
-          friends: [],
-          requests: [],
-          facebookId: profile.id
-        })
-        await newUser.save();
-        return cb(null, newUser);
-      } else if (!user.facebookId) {
-        const response = await UserModel.findByIdAndUpdate(user._id, {
-          facebookId: profile.id
-        }).exec();
-        return cb(null, response);
-      }
-      return cb(null, user);
-    } catch (err) {
-      console.log(err);
-    }
-  }
-));
-
 passport.serializeUser((user: any, done) => {
-  done(null, user.id);
+  done(null, user._id);
 });
 
-passport.deserializeUser(async (id, done) => {
+passport.deserializeUser(async (_id, done) => {
   try {
-    const user: User | null = await UserModel.findById(id);
+    const user: any = await User.findById(_id).exec();
     done(null, user);
   } catch(err) {
     done(err);
@@ -94,7 +61,7 @@ passport.deserializeUser(async (id, done) => {
 });
 
 app.use(session({ secret: process.env.SESSION_SEKRET!, resave: false, saveUninitialized: true }));
-// app.use(passport.initialize()); // docs say this is depreciated
+app.use(passport.initialize()); // docs say this is depreciated?
 app.use(passport.session());
 
 app.use(logger(process.env.NODE_ENV === 'prod' ? 'common' : 'dev'));
@@ -104,7 +71,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // cors setup
-app.use(cors());
+app.use(cors({ credentials: true, origin: 'http://localhost:5173' }));
 
 app.use('/api', apiRouter);
 

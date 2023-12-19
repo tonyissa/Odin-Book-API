@@ -29,7 +29,7 @@ main().catch(err => console.log(err)).then(() => console.log('MongoDB Connected'
 const app = express()
 
 passport.use(
-  new LocalStrategy({ usernameField: 'login' }, async (username, password, done) => {
+  new LocalStrategy({ usernameField: 'id' }, async (username, password, done) => {
     try {
       const user: any = await User.findOne({ $or: [{ email: username }, { username }] }).exec();
       if (!user) {
@@ -60,7 +60,6 @@ passport.deserializeUser(async (_id, done) => {
 });
 
 app.use(session({ secret: process.env.SESSION_SEKRET!, resave: false, saveUninitialized: true }));
-app.use(passport.initialize()); // docs say this is depreciated?
 app.use(passport.session());
 
 app.use(logger(process.env.NODE_ENV === 'prod' ? 'common' : 'dev'));
@@ -69,7 +68,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// cors setup
+// cors
 app.use(cors({ credentials: true, origin: 'http://localhost:5173' }));
 
 app.use('/api', apiRouter);

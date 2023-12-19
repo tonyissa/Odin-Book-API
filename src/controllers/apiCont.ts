@@ -9,11 +9,13 @@ import bcrypt from 'bcryptjs';
 import passport from 'passport';
 
 // ACCOUNT OPERATIONS
-export const login = function(req: Request, res: Response, next: NextFunction) {
-    passport.authenticate('local', function(err: any, user: any, info: any, status: any) {
+export const login = function (req: Request, res: Response, next: NextFunction) {
+    passport.authenticate('local', function (err: any, user: any, info: any, status: any) {
         if (err) return next(err)
         if (!user) return res.status(400).json(info)
         req.login(user, next);
+        const { password, ...rest } = user;
+        res.json({ user: rest });
     })(req, res, next);
 }
 
@@ -38,24 +40,22 @@ export const create_account = [
     asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            res.json({ errors: errors.array() });
+            res.status(400).json(errors.array());
         } else {
-            bcrypt.hash(req.body.password, 10, (err, hashed) => {
-                if (err) return next(err);
-                const newUser = new User({
-                    username: req.body.username,
-                    email: req.body.email,
-                    password: hashed,
-                    about: '',
-                    friends: [],
-                    requests: [],
-                    facebookId: ''
-                })
-                newUser.save()
-                .then(() => {
-                    req.login(newUser, (err) => next(err))
-                }).catch(err => next(err))
+            const hashed = await bcrypt.hash(req.body.password, 10);
+            const newUser = new User({
+                username: req.body.username,
+                email: req.body.email,
+                password: hashed,
+                about: '',
+                friends: [],
+                requests: [],
+                facebookId: ''
             })
+            await newUser.save()
+            req.login(newUser as any, (err) => next(err)) // @ts-ignore
+            const { password, ...rest } = newUser._doc;
+            res.json({ user: rest });
         }
     }
 )]
@@ -110,6 +110,16 @@ export const change_password = [
         }
     })
 ]
+
+export const check_auth = function(req: Request, res: Response, next: NextFunction) {
+    if (req.isAuthenticated()) {
+        next();
+        const { password, ...rest } = req.user
+        res.json({ user: rest });
+    } else {
+      res.status(401).json({ message: "User is not logged in" });
+    }
+}
 
 // GET
 export const get_feed = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {

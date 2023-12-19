@@ -12,7 +12,9 @@ router.post('/create-account', apiCont.create_account);
 
 router.post('/update-profile', apiCont.update_profile);
 
-router.post('change-password', apiCont.change_password);
+router.post('/change-password', apiCont.change_password);
+
+router.get('/auth', apiCont.check_auth);
 
 // GET
 router.get('/feed', apiCont.get_feed);

@@ -117,7 +117,7 @@ export const check_auth = function(req: Request, res: Response, next: NextFuncti
         const { password, ...rest } = req.user
         res.json({ user: rest });
     } else {
-      res.status(401).json({ message: "User is not logged in" });
+        res.status(401).json({ message: "User is not logged in" });
     }
 }
 

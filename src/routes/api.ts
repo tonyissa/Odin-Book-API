@@ -4,17 +4,17 @@ const router = express.Router();
 import * as apiCont from '../controllers/apiCont.js';
 
 // ACCOUNT OPERATIONS
-router.post('/login', apiCont.login);
+router.post('/login', apiCont.login, apiCont.return_user);
 
 router.get('/logout', apiCont.logout);
 
-router.post('/create-account', apiCont.create_account);
+router.post('/create-account', apiCont.create_account, apiCont.return_user);
 
 router.post('/update-profile', apiCont.update_profile);
 
 router.post('/change-password', apiCont.change_password);
 
-router.get('/auth', apiCont.check_auth);
+router.get('/auth', apiCont.check_auth, apiCont.return_user);
 
 // GET
 router.get('/feed', apiCont.get_feed);

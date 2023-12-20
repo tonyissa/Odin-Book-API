@@ -13,9 +13,10 @@ export const login = function (req: Request, res: Response, next: NextFunction) 
     passport.authenticate('local', function (err: any, user: any, info: any, status: any) {
         if (err) return next(err)
         if (!user) return res.status(400).json(info)
-        req.login(user, next);
-        const { password, ...rest } = user;
-        res.json({ user: rest });
+        req.logIn(user, function(err) {
+            if (err) return next(err);
+            next();
+        });
     })(req, res, next);
 }
 
@@ -43,7 +44,7 @@ export const create_account = [
             res.status(400).json(errors.array());
         } else {
             const hashed = await bcrypt.hash(req.body.password, 10);
-            const newUser = new User({
+            const newUser: any = new User({
                 username: req.body.username,
                 email: req.body.email,
                 password: hashed,
@@ -53,9 +54,10 @@ export const create_account = [
                 facebookId: ''
             })
             await newUser.save()
-            req.login(newUser as any, (err) => next(err)) // @ts-ignore
-            const { password, ...rest } = newUser._doc;
-            res.json({ user: rest });
+            req.login(newUser, (err) => {
+                if (err) return next(err);
+                return next();
+            })
         }
     }
 )]
@@ -114,12 +116,15 @@ export const change_password = [
 export const check_auth = function(req: Request, res: Response, next: NextFunction) {
     console.log(req.session)
     if (req.isAuthenticated()) {
-        next();
-        const { password, ...rest } = req.user
-        res.json({ user: rest });
+        return next();
     } else {
         res.status(401).json({ message: "User is not logged in" });
     }
+}
+
+export const return_user = function(req: Request, res: Response, next: NextFunction) {
+    const { password, ...rest } = req.user!._doc;
+    return res.status(200).json(rest);
 }
 
 // GET

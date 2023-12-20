@@ -11,7 +11,7 @@ import passport from 'passport';
 import session from 'express-session';
 import { Strategy as LocalStrategy } from "passport-local";
 import User from './models/User.js';
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 
 // mongoose setup
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
@@ -60,6 +60,7 @@ passport.deserializeUser(async (_id, done) => {
 });
 
 app.use(session({ secret: process.env.SESSION_SEKRET!, resave: false, saveUninitialized: true }));
+app.use(passport.initialize());
 app.use(passport.session());
 
 app.use(logger(process.env.NODE_ENV === 'prod' ? 'common' : 'dev'));

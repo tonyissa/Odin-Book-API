@@ -5,7 +5,7 @@ import Message from '../models/Message.js';
 import Post from '../models/Post.js';
 import Reply from '../models/Reply.js';
 import User, { UserType } from '../models/User.js';
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 import passport from 'passport';
 
 // ACCOUNT OPERATIONS
@@ -112,6 +112,7 @@ export const change_password = [
 ]
 
 export const check_auth = function(req: Request, res: Response, next: NextFunction) {
+    console.log(req.session)
     if (req.isAuthenticated()) {
         next();
         const { password, ...rest } = req.user

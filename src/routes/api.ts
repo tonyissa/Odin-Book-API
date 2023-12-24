@@ -16,28 +16,28 @@ router.post('/change-password', apiCont.change_password);
 
 router.get('/auth', apiCont.check_auth, apiCont.return_user);
 
-// GET
-router.get('/feed', apiCont.get_feed);
-
+// GET STUFF
 router.get('/user/:userId', apiCont.get_user);
 
 router.get('/conversations', apiCont.get_conversations);
 
 router.get('/conversations/:userId', apiCont.get_user_conversation);
 
-// POST
+router.post('/feed', apiCont.get_feed);
+
+// CREATE STUFF
 router.post('/post', apiCont.create_post);
 
 router.post('/post/:postId/create-reply', apiCont.create_reply);
 
 router.post('/conversations/:userId/create-message', apiCont.create_message);
 
-// UPDATE
+// UPDATE STUFF
 router.put('/post/:postId/update', apiCont.update_post);
 
 router.put('/post/:postId/:replyId/update', apiCont.update_reply);
 
-// DELETE
+// DELETE STUFF
 router.delete('/post/:postId/delete', apiCont.delete_post);
 
 router.delete('/post/:postId/:replyId/delete', apiCont.delete_reply);

@@ -114,7 +114,6 @@ export const change_password = [
 ]
 
 export const check_auth = function(req: Request, res: Response, next: NextFunction) {
-    console.log(req.session)
     if (req.isAuthenticated()) {
         return next();
     } else {
@@ -127,10 +126,9 @@ export const return_user = function(req: Request, res: Response, next: NextFunct
     return res.status(200).json(rest);
 }
 
-// GET
+// GET STUFF
 export const get_feed = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const { friends }: any = await User.findOne({}, "friends").exec();
-    const response = await Post.find({ author: { $in: friends } }).exec();
+    const response = await Post.find({ author: { $in: req.body.friends } }).sort({ date: -1 }).exec();
     res.json(response);
 })
 
@@ -148,7 +146,7 @@ export const get_user_conversation = asyncHandler(async (req: Request, res: Resp
     
 })
 
-// POST
+// CREATE STUFF
 export const create_post = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     
 })
@@ -161,7 +159,7 @@ export const create_message = asyncHandler(async (req: Request, res: Response, n
     
 })
 
-// UPDATE
+// UPDATE STUFF
 export const update_post = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     
 })
@@ -170,7 +168,7 @@ export const update_reply = asyncHandler(async (req: Request, res: Response, nex
     
 })
 
-// DELETE
+// DELETE STUFF
 export const delete_post = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     
 })

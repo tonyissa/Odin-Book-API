@@ -1,4 +1,4 @@
-import express, { Request, Response, NextFunction } from 'express'
+import { Request, Response, NextFunction } from 'express'
 import asyncHandler from 'express-async-handler';
 import { body, validationResult } from 'express-validator';
 import Message from '../models/Message.js';
@@ -7,6 +7,21 @@ import Reply from '../models/Reply.js';
 import User, { UserType } from '../models/User.js';
 import bcrypt from 'bcrypt';
 import passport from 'passport';
+import { Types } from 'mongoose';
+
+// AUTH
+export const check_auth = function(req: Request, res: Response, next: NextFunction) {
+    if (req.isAuthenticated()) {
+        return next();
+    } else {
+        res.sendStatus(401);
+    }
+}
+
+export const return_user = function(req: Request, res: Response, next: NextFunction) {
+    const { password, ...rest } = req.user!._doc;
+    return res.status(200).json(rest);
+}
 
 // ACCOUNT OPERATIONS
 export const login = function (req: Request, res: Response, next: NextFunction) {
@@ -48,10 +63,7 @@ export const create_account = [
                 username: req.body.username,
                 email: req.body.email,
                 password: hashed,
-                about: '',
-                friends: [],
-                requests: [],
-                facebookId: ''
+                about: ''
             })
             await newUser.save()
             req.login(newUser, (err) => {
@@ -80,7 +92,7 @@ export const update_profile = [
 ]
 
 export const change_password = [
-    body('old').trim().notEmpty().withMessage('Please enter your old password').custom((value, { req }) => {
+    body('oldPassword').trim().notEmpty().withMessage('Please enter your old password').custom((value, { req }) => {
         const match = bcrypt.compareSync(value, req.user.password)
         if (!match) {
             throw new Error('Please input your current password correctly')
@@ -97,43 +109,23 @@ export const change_password = [
     asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            res.json({ errors: errors.array() });
+            res.status(400).json(errors.array());
         } else {
-            bcrypt.hash(req.body.password, 10, (err, hashed) => {
-                if (err) return next(err);
-                User.findByIdAndUpdate(req.user!._id, {
-                    password: hashed
-                }).exec()
-                .then(() => res.sendStatus(200))
-                .catch(err => {
-                    return next(err);
-                })
-            })
+            const hashed = await bcrypt.hash(req.body.password, 10)
+            await User.findByIdAndUpdate(req.user!._id, { password: hashed }).exec();
+            res.sendStatus(200);
         }
     })
 ]
 
-export const check_auth = function(req: Request, res: Response, next: NextFunction) {
-    if (req.isAuthenticated()) {
-        return next();
-    } else {
-        res.status(401).json({ message: "User is not logged in" });
-    }
-}
-
-export const return_user = function(req: Request, res: Response, next: NextFunction) {
-    const { password, ...rest } = req.user!._doc;
-    return res.status(200).json(rest);
-}
-
 // GET STUFF
 export const get_feed = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const response = await Post.find({ author: { $in: req.body.friends } }).sort({ date: -1 }).exec();
+    const response = await Post.find().populate('author', 'username').sort({ date: -1 }).exec();
     res.json(response);
 })
 
 export const get_user = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const user = await User.findById(req.params.userId).exec();
+    const user = await User.findById(req.params.userId, '-password').exec();
     const posts = await Post.find({ author: req.params.userId }).exec();
     res.json({ user, posts });
 })
@@ -147,13 +139,45 @@ export const get_user_conversation = asyncHandler(async (req: Request, res: Resp
 })
 
 // CREATE STUFF
-export const create_post = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    
-})
+export const create_post = [
+    body('input').trim().isLength({ max: 3000 }).withMessage('Post must not exceed 3000 characters'),
+    asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            res.status(400).json({ errors: errors.array() });
+        } else {
+            const newPost = new Post({
+                body: req.body.input,
+                filename: '',
+                date: Date.now(),
+                author: req.user!._id,
+                likes: 0
+            })
+            await newPost.save();
+            res.status(200).json(newPost);
+        }
+    })
+]
 
-export const create_reply = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    
-})
+export const create_reply = [
+    body('reply').trim().exists().withMessage('Reply required').isLength({ max: 1500 }).withMessage('Post must not exceed 1500 characters'),
+    asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            res.status(400).json({ errors: errors.array() });
+        } else {
+            const newReply = new Reply({
+                reply: req.body.reply,
+                date: Date.now(),
+                post: req.body.post,
+                author: req.user!._id,
+                likes: 0
+            })
+            await newReply.save();
+            res.status(200).json(newReply);
+        }
+    })
+]
 
 export const create_message = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     
@@ -170,7 +194,10 @@ export const update_reply = asyncHandler(async (req: Request, res: Response, nex
 
 // DELETE STUFF
 export const delete_post = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    
+    if (req.user!._id === req.body._id) {
+        const response = await Post.findByIdAndDelete(req.body._id);
+        res.json(response);
+    }
 })
 
 export const delete_reply = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
@@ -180,3 +207,24 @@ export const delete_reply = asyncHandler(async (req: Request, res: Response, nex
 export const delete_message = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     
 })
+
+export const delete_user = [
+    body('password').trim().notEmpty().withMessage('Please enter your password').custom((value, { req }) => {
+        const match = bcrypt.compareSync(value, req.user.password)
+        if (!match) {
+            throw new Error('Please enter your current password correctly')
+        }
+        return true;
+    }),
+    asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            res.status(400).json(errors.array());
+        } else {
+            await Reply.deleteMany({ author: req.user!._id }).exec();
+            await Post.deleteMany({ author: req.user!._id }).exec();
+            await User.findByIdAndDelete(req.user!._id).exec();
+            res.sendStatus(200);
+        }
+})
+]

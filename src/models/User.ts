@@ -5,9 +5,6 @@ const userSchema = new Schema({
     email: { type: String, unique: true },
     password: { type: String },
     about: { type: String },
-    friends: [{ type: Schema.Types.ObjectId, ref: 'User' }],
-    requests: [{ type: Schema.Types.ObjectId, ref: 'User' }],
-    facebookId: { type: String, unique: true }
 })
 
 export interface UserType {
@@ -16,9 +13,6 @@ export interface UserType {
     email: string,
     password: string,
     about: string,
-    friends: [Types.ObjectId],
-    requests: [Types.ObjectId],
-    facebookId?: string
 }
 
 export default model('User', userSchema);

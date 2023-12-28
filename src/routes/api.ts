@@ -12,9 +12,11 @@ router.post('/create-account', apiCont.create_account, apiCont.return_user);
 
 router.post('/update-profile', apiCont.update_profile);
 
-router.post('/change-password', apiCont.change_password);
+router.post('/change-password', apiCont.check_auth, apiCont.change_password);
 
 router.get('/auth', apiCont.check_auth, apiCont.return_user);
+
+router.delete('/delete-user', apiCont.check_auth, apiCont.delete_user)
 
 // GET STUFF
 router.get('/user/:userId', apiCont.get_user);
@@ -23,10 +25,10 @@ router.get('/conversations', apiCont.get_conversations);
 
 router.get('/conversations/:userId', apiCont.get_user_conversation);
 
-router.post('/feed', apiCont.get_feed);
+router.post('/feed', apiCont.check_auth, apiCont.get_feed); 
 
 // CREATE STUFF
-router.post('/post', apiCont.create_post);
+router.post('/post', apiCont.check_auth, apiCont.create_post);
 
 router.post('/post/:postId/create-reply', apiCont.create_reply);
 

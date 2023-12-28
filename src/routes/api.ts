@@ -25,7 +25,7 @@ router.get('/conversations', apiCont.get_conversations);
 
 router.get('/conversations/:userId', apiCont.get_user_conversation);
 
-router.post('/feed', apiCont.check_auth, apiCont.get_feed); 
+router.get('/feed', apiCont.check_auth, apiCont.get_feed); 
 
 // CREATE STUFF
 router.post('/post', apiCont.check_auth, apiCont.create_post);

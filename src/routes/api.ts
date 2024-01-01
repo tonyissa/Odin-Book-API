@@ -16,7 +16,9 @@ router.get('/auth', apiCont.check_auth, apiCont.return_user);
 
 router.delete('/delete-user', apiCont.check_auth, apiCont.delete_user)
 
-router.get("/google/", apiCont.google_login);
+router.get("/google/login", apiCont.google_login);
+
+router.get("/google/callback", apiCont.google_redirect, (req, res, next) => res.redirect('http://localhost:5173/'));
 
 // GET STUFF
 router.get('/user/:userId', apiCont.get_user);

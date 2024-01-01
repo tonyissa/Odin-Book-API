@@ -26,7 +26,7 @@ export const return_user = function(req: Request, res: Response, next: NextFunct
 // ACCOUNT OPERATIONS
 export const login = function (req: Request, res: Response, next: NextFunction) {
     passport.authenticate('local', function (err: any, user: any, info: any, status: any) {
-        if (err) return next(err)
+        if (err) return next(err);
         if (!user) return res.status(400).json(info)
         req.logIn(user, function(err) {
             if (err) return next(err);
@@ -34,6 +34,10 @@ export const login = function (req: Request, res: Response, next: NextFunction) 
         });
     })(req, res, next);
 }
+
+export const google_login = passport.authenticate('google', { scope: ['email', 'profile'] })
+
+export const google_redirect = passport.authenticate('google');
 
 export const logout = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     req.logout(err => {
@@ -75,7 +79,10 @@ export const create_account = [
 )]
 
 export const change_password = [
-    body('oldPassword').trim().notEmpty().withMessage('Please enter your old password').custom((value, { req }) => {
+    body('oldPassword').trim().custom((value, { req }) => {
+        if (req.user.password === '') {
+            return true
+        }
         const match = bcrypt.compareSync(value, req.user.password)
         if (!match) {
             throw new Error('Please input your current password correctly')
@@ -100,8 +107,6 @@ export const change_password = [
         }
     })
 ]
-
-
 
 // GET STUFF
 export const get_feed = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {

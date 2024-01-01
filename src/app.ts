@@ -10,6 +10,7 @@ import mongoose from 'mongoose';
 import passport from 'passport';
 import session from 'express-session';
 import { Strategy as LocalStrategy } from "passport-local";
+import { Strategy as GoogleStrategy } from 'passport-google-oauth2';
 import User from './models/User.js';
 import bcrypt from 'bcrypt';
 
@@ -44,6 +45,34 @@ passport.use(
     } catch(err) {
       return done(err);
     };
+  })
+);
+
+passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID!,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    callbackURL: 'http://localhost:3000/auth/google/callback'
+  }, async (accessToken, refreshToken, profile, done) => {
+    let user = await User.findOne({ googleId: profile.id }).exec();
+    if (!user) {
+      const currentUser = await User.findOne({ email: profile.emails?.[0].value }).exec();
+      if (currentUser) {
+        user = currentUser
+      }
+    }
+    if (!user) {
+      const newUser = User.create({
+        googleId: profile.id,
+        name: profile.displayName,
+        email: profile.emails?.[0].value
+      })
+      if (newUser) {
+        return done(null, newUser)
+      }
+    }
+    if (user) {
+      return done(null, user)
+    }
   })
 );
 

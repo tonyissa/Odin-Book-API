@@ -63,7 +63,7 @@ export const create_account = [
                 username: req.body.username,
                 email: req.body.email,
                 password: hashed,
-                about: ''
+                googleId: ''
             })
             await newUser.save()
             req.login(newUser, (err) => {
@@ -73,23 +73,6 @@ export const create_account = [
         }
     }
 )]
-
-export const update_profile = [
-    body('username').trim().isLength(({ min: 0, max: 15 })).withMessage('Username must be between 0-15 characters')
-    .isAlphanumeric().withMessage('Username must not contain non-alphanumeric characters'),
-    body('about').trim().isLength(({ max: 150 })).withMessage('About me section has a max length of 150 characters'),
-    asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            res.json({ errors: errors.array() });
-        } else {
-            await User.findByIdAndUpdate(req.user!._id, {
-            username: req.body.username,
-            about: req.body.about
-            }).exec();
-        res.sendStatus(200);
-    }})
-]
 
 export const change_password = [
     body('oldPassword').trim().notEmpty().withMessage('Please enter your old password').custom((value, { req }) => {
@@ -117,6 +100,8 @@ export const change_password = [
         }
     })
 ]
+
+
 
 // GET STUFF
 export const get_feed = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
@@ -150,31 +135,10 @@ export const create_post = [
                 body: req.body.input,
                 filename: '',
                 date: Date.now(),
-                author: req.user!._id,
-                likes: 0
+                author: req.user!._id
             })
             await newPost.save();
             res.status(200).json(newPost);
-        }
-    })
-]
-
-export const create_reply = [
-    body('reply').trim().exists().withMessage('Reply required').isLength({ max: 1500 }).withMessage('Post must not exceed 1500 characters'),
-    asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            res.status(400).json({ errors: errors.array() });
-        } else {
-            const newReply = new Reply({
-                reply: req.body.reply,
-                date: Date.now(),
-                post: req.body.post,
-                author: req.user!._id,
-                likes: 0
-            })
-            await newReply.save();
-            res.status(200).json(newReply);
         }
     })
 ]
@@ -183,31 +147,7 @@ export const create_message = asyncHandler(async (req: Request, res: Response, n
     
 })
 
-// UPDATE STUFF
-export const update_post = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    
-})
-
-export const update_reply = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    
-})
-
 // DELETE STUFF
-export const delete_post = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    if (req.user!._id === req.body._id) {
-        const response = await Post.findByIdAndDelete(req.body._id);
-        res.json(response);
-    }
-})
-
-export const delete_reply = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    
-})
-
-export const delete_message = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    
-})
-
 export const delete_user = [
     body('password').trim().notEmpty().withMessage('Please enter your password').custom((value, { req }) => {
         const match = bcrypt.compareSync(value, req.user.password)

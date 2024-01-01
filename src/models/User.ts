@@ -4,7 +4,7 @@ const userSchema = new Schema({
     username: { type: String, unique: true },
     email: { type: String, unique: true },
     password: { type: String },
-    about: { type: String },
+    googleId: { type: String }
 })
 
 export interface UserType {
@@ -12,7 +12,7 @@ export interface UserType {
     username: string,
     email: string,
     password: string,
-    about: string,
+    googleId?: string
 }
 
 export default model('User', userSchema);

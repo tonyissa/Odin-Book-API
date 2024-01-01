@@ -10,13 +10,13 @@ router.get('/logout', apiCont.logout);
 
 router.post('/create-account', apiCont.create_account, apiCont.return_user);
 
-router.post('/update-profile', apiCont.update_profile);
-
 router.post('/change-password', apiCont.check_auth, apiCont.change_password);
 
 router.get('/auth', apiCont.check_auth, apiCont.return_user);
 
 router.delete('/delete-user', apiCont.check_auth, apiCont.delete_user)
+
+router.get("/google/", apiCont.google_login);
 
 // GET STUFF
 router.get('/user/:userId', apiCont.get_user);
@@ -30,20 +30,6 @@ router.get('/feed', apiCont.check_auth, apiCont.get_feed);
 // CREATE STUFF
 router.post('/post', apiCont.check_auth, apiCont.create_post);
 
-router.post('/post/:postId/create-reply', apiCont.create_reply);
-
 router.post('/conversations/:userId/create-message', apiCont.create_message);
-
-// UPDATE STUFF
-router.put('/post/:postId/update', apiCont.update_post);
-
-router.put('/post/:postId/:replyId/update', apiCont.update_reply);
-
-// DELETE STUFF
-router.delete('/post/:postId/delete', apiCont.delete_post);
-
-router.delete('/post/:postId/:replyId/delete', apiCont.delete_reply);
-
-router.delete('/conversations/:userId/delete', apiCont.delete_message);
 
 export default router

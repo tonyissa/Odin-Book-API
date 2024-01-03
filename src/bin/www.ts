@@ -3,16 +3,18 @@ import dotenv from 'dotenv';
 import app from '../app.js';
 import serverDebug from 'debug';
 import http from 'http';
-
-if (!process.env) {
-  throw new Error('Environmental variables not initialized')
-}
+import { WebSocketServer } from 'ws';
+import { randomUUID } from 'crypto';
 
 /**
  * Module dependencies.
  */
 dotenv.config();
 const debug = serverDebug('Odin-Book-API');
+
+if (!process.env) {
+  throw new Error('Environmental variables not initialized')
+}
 
 /**
  * Get port from environment and store in Express.
@@ -27,6 +29,36 @@ app.set('port', port);
 
 const server = http.createServer(app);
 
+const wss = new WebSocketServer({ server });
+
+const clients = new Map();
+
+wss.on('connection', (ws, req) => {
+    const id = req.url!.slice(1);
+    const color = Math.floor(Math.random() * 360);
+    const metadata = { id, color };
+
+    clients.set(ws, metadata)
+
+    ws.on('error', console.error);
+    
+    ws.on('message', (data: string) => {
+        const body = JSON.parse(data);
+        body.sender = id;
+        body.color = color;
+        body.id = randomUUID();
+        
+        const outbound = JSON.stringify(body);
+        [...clients.keys()].forEach(client => {
+            client.send(outbound);
+        })
+    })
+    
+    ws.on("close", () => {
+        clients.delete(ws);
+      });
+})
+
 /**
  * Listen on provided port, on all network interfaces.
  */
@@ -34,6 +66,7 @@ const server = http.createServer(app);
 server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
+
 
 /**
  * Normalize a port into a number, string, or false.

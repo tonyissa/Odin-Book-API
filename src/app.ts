@@ -67,7 +67,9 @@ passport.use(new GoogleStrategy({
         email: profile.emails?.[0].value,
         password: ''
       })
-      return done(null, newUser)
+      if (newUser) {
+        return done(null, newUser)
+      }
     } else {
       return done(null, user)
     }

@@ -1,13 +1,10 @@
 import { Request, Response, NextFunction } from 'express'
 import asyncHandler from 'express-async-handler';
 import { body, validationResult } from 'express-validator';
-import Message from '../models/Message.js';
 import Post from '../models/Post.js';
-import Reply from '../models/Reply.js';
 import User, { UserType } from '../models/User.js';
 import bcrypt from 'bcrypt';
 import passport from 'passport';
-import { Types } from 'mongoose';
 
 // AUTH
 export const check_auth = function(req: Request, res: Response, next: NextFunction) {
@@ -166,7 +163,6 @@ export const delete_user = [
         if (!errors.isEmpty()) {
             res.status(400).json(errors.array());
         } else {
-            await Reply.deleteMany({ author: req.user!._id }).exec();
             await Post.deleteMany({ author: req.user!._id }).exec();
             await User.findByIdAndDelete(req.user!._id).exec();
             res.sendStatus(200);

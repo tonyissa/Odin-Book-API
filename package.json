@@ -22,7 +22,8 @@
     "morgan": "~1.9.1",
     "passport": "^0.7.0",
     "passport-google-oauth2": "^0.2.0",
-    "passport-local": "^1.0.0"
+    "passport-local": "^1.0.0",
+    "ws": "^8.16.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
@@ -37,6 +38,7 @@
     "@types/passport-facebook": "^3.0.3",
     "@types/passport-google-oauth2": "^0.1.8",
     "@types/passport-local": "^1.0.38",
+    "@types/ws": "^8.5.10",
     "tsx": "^4.6.2",
     "typescript": "^5.3.3"
   }
